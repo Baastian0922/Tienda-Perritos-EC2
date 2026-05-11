@@ -2,7 +2,7 @@ name: Deploy Tienda de Perritos
 
 on:
   push:
-    branches: [ "deploy" ] # Se activa solo cuando subes cambios a la rama deploy
+    branches: [ "deploy" ]
 
 jobs:
   deploy:
@@ -19,17 +19,23 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Desplegar en EC2 con Debug Pro
+      - name: Transferir archivos y Desplegar
         run: |
-          # 1. Crear el archivo de la llave con el secreto
+          # 1. Preparar la llave
           echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
           chmod 600 private_key.pem
           
-          # 2. Intentar conexión con SSH Verbose (-vvv) para ver el error real
-          ssh -o StrictHostKeyChecking=no -v -i private_key.pem ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-            echo "Conexión exitosa al servidor!"
-            mkdir -p ~/tienda-perritos_EC2
+          # 2. Crear la carpeta en la EC2 (por si acaso)
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ec2-user@${{ secrets.EC2_HOST }} "mkdir -p ~/tienda-perritos_EC2"
+          
+          # 3. COPIAR LOS ARCHIVOS (La pieza que faltaba)
+          # Copiamos todo el contenido actual a la carpeta de la EC2
+          scp -o StrictHostKeyChecking=no -i private_key.pem -r ./* ec2-user@${{ secrets.EC2_HOST }}:~/tienda-perritos_EC2
+          
+          # 4. EJECUTAR DOCKER EN EL SERVIDOR
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
             cd ~/tienda-perritos_EC2
             sudo docker-compose down || true
             sudo docker-compose up -d --build
+            echo "Despliegue completado con éxito."
           EOF
