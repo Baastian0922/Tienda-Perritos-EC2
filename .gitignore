@@ -1,0 +1,6 @@
+# Llaves privadas de AWS
+*.pem
+
+# Archivos temporales de sistema
+.DS_Store
+Thumbs.db

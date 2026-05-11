@@ -19,18 +19,17 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Desplegar en EC2 vía SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            # Entrar a la carpeta del proyecto o crearla si no existe
+      - name: Desplegar en EC2 con Debug Pro
+        run: |
+          # 1. Crear el archivo de la llave con el secreto
+          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+          
+          # 2. Intentar conexión con SSH Verbose (-vvv) para ver el error real
+          ssh -o StrictHostKeyChecking=no -v -i private_key.pem ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+            echo "Conexión exitosa al servidor!"
             mkdir -p ~/tienda-perritos_EC2
             cd ~/tienda-perritos_EC2
-            
-            # Comandos para limpiar y levantar los contenedores
-            # Nota: Asegúrate de que docker-compose esté instalado en tu EC2
             sudo docker-compose down || true
             sudo docker-compose up -d --build
+          EOF
