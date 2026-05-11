@@ -17,6 +17,8 @@ services:
     build: ./backend
     container_name: tienda-backend
     restart: always
+    ports:
+      - "3001:3001" # <--- ¡ESTA ES LA LLAVE MÁGICA!
     environment:
       DB_HOST: db
       DB_USER: alumno
