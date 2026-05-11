@@ -33,4 +33,4 @@ jobs:
             # Comandos para limpiar y levantar los contenedores
             # Nota: Asegúrate de que docker-compose esté instalado en tu EC2
             sudo docker-compose down || true
-            sudo docker-compose up -d --build
+            sudo docker-compose up -d --build.
